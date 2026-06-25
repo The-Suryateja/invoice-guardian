@@ -31,8 +31,9 @@ function AuthPage() {
   }, [navigate]);
 
   async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
+  console.log("FORM SUBMIT FIRED");
+  e.preventDefault();
+  setBusy(true);
     try {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
