@@ -152,7 +152,7 @@ function ReviewPage() {
           currency: form.currency || "INR",
           raw_extraction: rawExtraction as never,
           extraction_confidence: confidence,
-          status: "pending",
+          status: "pending_review",
         })
         .eq("id", id);
       if (upErr) throw upErr;

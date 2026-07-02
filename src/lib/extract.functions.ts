@@ -105,12 +105,12 @@ export const extractInvoice = createServerFn({ method: "POST" })
       choices?: Array<{ message?: { content?: string } }>;
     };
     const raw = json.choices?.[0]?.message?.content ?? "";
-    let parsed: Record<string, unknown>;
+    let parsed: any;
     try {
       parsed = JSON.parse(stripJsonFences(raw));
     } catch {
       throw new Error("AI returned invalid JSON");
     }
 
-    return { extraction: parsed };
+    return { extraction: parsed as any };
   });
