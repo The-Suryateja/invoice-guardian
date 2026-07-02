@@ -29,6 +29,7 @@ function UploadPage() {
       setUploading(true);
       try {
         let i = 0;
+        let firstInvoiceId: string | null = null;
         for (const file of list) {
           i += 1;
           setProgress(`Uploading ${i} of ${list.length}: ${file.name}`);
@@ -52,21 +53,29 @@ function UploadPage() {
             continue;
           }
 
-          const { error: insErr } = await supabase.from("invoices").insert({
-            user_id: user.id,
-            file_path: path,
-            file_name: file.name,
-            file_mime: file.type,
-            file_size_bytes: file.size,
-            status: "uploaded",
-          });
-          if (insErr) {
-            toast.error(`${file.name}: ${insErr.message}`);
+          const { data: inserted, error: insErr } = await supabase
+            .from("invoices")
+            .insert({
+              user_id: user.id,
+              file_path: path,
+              file_name: file.name,
+              file_mime: file.type,
+              file_size_bytes: file.size,
+              status: "extracting",
+            })
+            .select("id")
+            .single();
+          if (insErr || !inserted) {
+            toast.error(`${file.name}: ${insErr?.message ?? "insert failed"}`);
             continue;
           }
+          if (!firstInvoiceId) firstInvoiceId = inserted.id;
         }
-        toast.success("Upload complete");
-        navigate({ to: "/invoices" });
+        if (firstInvoiceId) {
+          navigate({ to: "/review/$id", params: { id: firstInvoiceId } });
+        } else {
+          navigate({ to: "/invoices" });
+        }
       } finally {
         setUploading(false);
         setProgress("");
