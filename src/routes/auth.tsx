@@ -14,11 +14,15 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Sign in or create your InvoiceGuard account." },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" && s.next.startsWith("/") && !s.next.startsWith("//") ? s.next : undefined,
+  }),
   component: AuthPage,
 });
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,9 +30,11 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+      if (!data.session) return;
+      if (next) window.location.replace(next);
+      else navigate({ to: "/dashboard", replace: true });
     });
-  }, [navigate]);
+  }, [navigate, next]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,7 +44,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: next ? `${window.location.origin}${next}` : window.location.origin },
         });
         if (error) throw error;
         toast.success("Account created. You're signed in.");
@@ -46,7 +52,8 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
-      navigate({ to: "/dashboard", replace: true });
+      if (next) window.location.replace(next);
+      else navigate({ to: "/dashboard", replace: true });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
