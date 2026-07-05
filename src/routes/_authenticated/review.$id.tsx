@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Loader2, AlertTriangle, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { extractInvoice } from "@/lib/extract.functions";
+import { runDetection } from "@/lib/detect.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -173,8 +174,21 @@ function ReviewPage() {
         const { error: liErr } = await supabase.from("line_items").insert(items);
         if (liErr) throw liErr;
       }
-      toast.success("Invoice saved");
-      navigate({ to: "/invoices" });
+
+      // Run duplicate & fraud detection
+      try {
+        const result = await runDetection({ data: { invoiceId: id } });
+        if (result.status === "clean") {
+          toast.success("Invoice saved — no issues found ✓");
+        } else if (result.status === "duplicate") {
+          toast.error(`Invoice saved — duplicate detected (${result.flags.length} flag${result.flags.length === 1 ? "" : "s"})`);
+        } else {
+          toast.warning(`Invoice saved — ${result.flags.length} flag${result.flags.length === 1 ? "" : "s"} detected, please review`);
+        }
+      } catch (detErr) {
+        toast.warning(`Invoice saved, but detection failed: ${detErr instanceof Error ? detErr.message : "unknown error"}`);
+      }
+      navigate({ to: "/invoices/$id", params: { id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save");
     } finally {
