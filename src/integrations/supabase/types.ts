@@ -179,6 +179,9 @@ export type Database = {
         | "near_duplicate"
         | "math_mismatch"
         | "vendor_outlier"
+        | "possible_duplicate"
+        | "calculation_anomaly"
+        | "amount_anomaly"
       invoice_status:
         | "uploaded"
         | "extracting"
@@ -186,6 +189,8 @@ export type Database = {
         | "saved"
         | "flagged"
         | "archived"
+        | "clean"
+        | "duplicate"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -318,6 +323,9 @@ export const Constants = {
         "near_duplicate",
         "math_mismatch",
         "vendor_outlier",
+        "possible_duplicate",
+        "calculation_anomaly",
+        "amount_anomaly",
       ],
       invoice_status: [
         "uploaded",
@@ -326,6 +334,8 @@ export const Constants = {
         "saved",
         "flagged",
         "archived",
+        "clean",
+        "duplicate",
       ],
     },
   },
