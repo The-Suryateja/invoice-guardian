@@ -62,11 +62,13 @@ function InvoicesPage() {
         if (statusFilter === "clean" && r.status !== "clean") return false;
         if (statusFilter === "duplicate" && r.status !== "duplicate") return false;
       }
-      if (fromDate && (!r.invoice_date || r.invoice_date < fromDate)) return false;
-      if (toDate && (!r.invoice_date || r.invoice_date > toDate)) return false;
+      if (uploadedFrom && r.created_at.slice(0, 10) < uploadedFrom) return false;
+      if (uploadedTo && r.created_at.slice(0, 10) > uploadedTo) return false;
+      if (invoiceFrom && (!r.invoice_date || r.invoice_date < invoiceFrom)) return false;
+      if (invoiceTo && (!r.invoice_date || r.invoice_date > invoiceTo)) return false;
       return true;
     });
-  }, [data, search, statusFilter, fromDate, toDate]);
+  }, [data, search, statusFilter, uploadedFrom, uploadedTo, invoiceFrom, invoiceTo]);
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
