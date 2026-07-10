@@ -110,14 +110,26 @@ function InvoicesPage() {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col">
-            <label className="text-[10px] uppercase tracking-wide text-muted-foreground">From</label>
-            <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-9" />
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex items-end gap-2 rounded-md border border-border bg-card px-3 py-2">
+            <div className="flex flex-col">
+              <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Uploaded from</label>
+              <Input type="date" value={uploadedFrom} onChange={(e) => setUploadedFrom(e.target.value)} className="h-9" />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Uploaded to</label>
+              <Input type="date" value={uploadedTo} onChange={(e) => setUploadedTo(e.target.value)} className="h-9" />
+            </div>
           </div>
-          <div className="flex flex-col">
-            <label className="text-[10px] uppercase tracking-wide text-muted-foreground">To</label>
-            <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-9" />
+          <div className="flex items-end gap-2 rounded-md border border-border bg-card px-3 py-2">
+            <div className="flex flex-col">
+              <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Invoice date from</label>
+              <Input type="date" value={invoiceFrom} onChange={(e) => setInvoiceFrom(e.target.value)} className="h-9" />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Invoice date to</label>
+              <Input type="date" value={invoiceTo} onChange={(e) => setInvoiceTo(e.target.value)} className="h-9" />
+            </div>
           </div>
         </div>
       </div>
