@@ -32,8 +32,10 @@ type StatusFilter = "all" | "clean" | "flagged" | "duplicate";
 function InvoicesPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [uploadedFrom, setUploadedFrom] = useState("");
+  const [uploadedTo, setUploadedTo] = useState("");
+  const [invoiceFrom, setInvoiceFrom] = useState("");
+  const [invoiceTo, setInvoiceTo] = useState("");
 
   const { data, isLoading } = useQuery({
     queryKey: ["invoices"],
