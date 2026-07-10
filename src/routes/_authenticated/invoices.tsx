@@ -42,7 +42,7 @@ function InvoicesPage() {
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("id, file_name, status, vendor_name, invoice_number, invoice_date, total_amount, currency, created_at, flags(count)")
+        .select("id, file_name, status, vendor_name, invoice_number, invoice_date, total_amount, currency, created_at, flags!flags_invoice_id_fkey(count)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as Row[];
