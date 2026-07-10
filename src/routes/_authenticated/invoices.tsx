@@ -32,15 +32,17 @@ type StatusFilter = "all" | "clean" | "flagged" | "duplicate";
 function InvoicesPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  const [uploadedFrom, setUploadedFrom] = useState("");
+  const [uploadedTo, setUploadedTo] = useState("");
+  const [invoiceFrom, setInvoiceFrom] = useState("");
+  const [invoiceTo, setInvoiceTo] = useState("");
 
   const { data, isLoading } = useQuery({
     queryKey: ["invoices"],
     queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("id, file_name, status, vendor_name, invoice_number, invoice_date, total_amount, currency, created_at, flags(count)")
+        .select("id, file_name, status, vendor_name, invoice_number, invoice_date, total_amount, currency, created_at, flags!flags_invoice_id_fkey(count)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as Row[];
@@ -60,11 +62,13 @@ function InvoicesPage() {
         if (statusFilter === "clean" && r.status !== "clean") return false;
         if (statusFilter === "duplicate" && r.status !== "duplicate") return false;
       }
-      if (fromDate && (!r.invoice_date || r.invoice_date < fromDate)) return false;
-      if (toDate && (!r.invoice_date || r.invoice_date > toDate)) return false;
+      if (uploadedFrom && r.created_at.slice(0, 10) < uploadedFrom) return false;
+      if (uploadedTo && r.created_at.slice(0, 10) > uploadedTo) return false;
+      if (invoiceFrom && (!r.invoice_date || r.invoice_date < invoiceFrom)) return false;
+      if (invoiceTo && (!r.invoice_date || r.invoice_date > invoiceTo)) return false;
       return true;
     });
-  }, [data, search, statusFilter, fromDate, toDate]);
+  }, [data, search, statusFilter, uploadedFrom, uploadedTo, invoiceFrom, invoiceTo]);
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
@@ -106,14 +110,26 @@ function InvoicesPage() {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col">
-            <label className="text-[10px] uppercase tracking-wide text-muted-foreground">From</label>
-            <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="h-9" />
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex items-end gap-2 rounded-md border border-border bg-card px-3 py-2">
+            <div className="flex flex-col">
+              <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Uploaded from</label>
+              <Input type="date" value={uploadedFrom} onChange={(e) => setUploadedFrom(e.target.value)} className="h-9" />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Uploaded to</label>
+              <Input type="date" value={uploadedTo} onChange={(e) => setUploadedTo(e.target.value)} className="h-9" />
+            </div>
           </div>
-          <div className="flex flex-col">
-            <label className="text-[10px] uppercase tracking-wide text-muted-foreground">To</label>
-            <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="h-9" />
+          <div className="flex items-end gap-2 rounded-md border border-border bg-card px-3 py-2">
+            <div className="flex flex-col">
+              <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Invoice date from</label>
+              <Input type="date" value={invoiceFrom} onChange={(e) => setInvoiceFrom(e.target.value)} className="h-9" />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Invoice date to</label>
+              <Input type="date" value={invoiceTo} onChange={(e) => setInvoiceTo(e.target.value)} className="h-9" />
+            </div>
           </div>
         </div>
       </div>

@@ -31,16 +31,22 @@ export const runDetection = createServerFn({ method: "POST" })
 
     let exactDupFound = false;
 
-    // Rule 1: EXACT DUPLICATE
-    if (inv.vendor_gstin && inv.invoice_number) {
-      const { data: dupes } = await supabase
+    // Rule 1: EXACT DUPLICATE (match by GSTIN+invoice#, or fallback vendor_name+invoice#)
+    if (inv.invoice_number) {
+      let query = supabase
         .from("invoices")
-        .select("id, invoice_number, vendor_name, created_at")
+        .select("id, invoice_number, vendor_name, vendor_gstin, created_at")
         .eq("user_id", userId)
-        .eq("vendor_gstin", inv.vendor_gstin)
         .eq("invoice_number", inv.invoice_number)
-        .neq("id", invoiceId)
-        .limit(1);
+        .neq("id", invoiceId);
+      if (inv.vendor_gstin) {
+        query = query.eq("vendor_gstin", inv.vendor_gstin);
+      } else if (inv.vendor_name) {
+        query = query.is("vendor_gstin", null).ilike("vendor_name", inv.vendor_name.trim());
+      } else {
+        query = query.eq("id", "00000000-0000-0000-0000-000000000000"); // no-op
+      }
+      const { data: dupes } = await query.limit(1);
       if (dupes && dupes.length > 0) {
         const d = dupes[0];
         exactDupFound = true;
@@ -52,22 +58,26 @@ export const runDetection = createServerFn({ method: "POST" })
       }
     }
 
-    // Rule 2: POSSIBLE DUPLICATE
-    if (!exactDupFound && inv.vendor_gstin && inv.total_amount != null && inv.invoice_date) {
+    // Rule 2: POSSIBLE DUPLICATE (same amount + date within ±7d; match by GSTIN or vendor_name fallback)
+    if (!exactDupFound && inv.total_amount != null && inv.invoice_date && (inv.vendor_gstin || inv.vendor_name)) {
       const d0 = new Date(inv.invoice_date);
       const from = new Date(d0); from.setDate(from.getDate() - 7);
       const to = new Date(d0); to.setDate(to.getDate() + 7);
       const iso = (d: Date) => d.toISOString().slice(0, 10);
-      const { data: near } = await supabase
+      let query = supabase
         .from("invoices")
         .select("id, invoice_number, vendor_name, invoice_date, total_amount")
         .eq("user_id", userId)
-        .eq("vendor_gstin", inv.vendor_gstin)
         .eq("total_amount", inv.total_amount)
         .gte("invoice_date", iso(from))
         .lte("invoice_date", iso(to))
-        .neq("id", invoiceId)
-        .limit(1);
+        .neq("id", invoiceId);
+      if (inv.vendor_gstin) {
+        query = query.eq("vendor_gstin", inv.vendor_gstin);
+      } else {
+        query = query.is("vendor_gstin", null).ilike("vendor_name", inv.vendor_name!.trim());
+      }
+      const { data: near } = await query.limit(1);
       if (near && near.length > 0) {
         const n = near[0];
         const days = Math.abs(Math.round((new Date(n.invoice_date!).getTime() - d0.getTime()) / 86400000));
