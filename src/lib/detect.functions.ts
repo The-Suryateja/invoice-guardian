@@ -81,7 +81,7 @@ export const runDetection = createServerFn({ method: "POST" })
       if (inv.vendor_gstin) {
         query = query.eq("vendor_gstin", inv.vendor_gstin);
       } else {
-        query = query.is("vendor_gstin", null).ilike("vendor_name", inv.vendor_name!.trim());
+        query = query.is("vendor_gstin", null).ilike("vendor_name", escapeLikePattern(inv.vendor_name!.trim()));
       }
       const { data: near } = await query.limit(1);
       if (near && near.length > 0) {
