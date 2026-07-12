@@ -56,7 +56,7 @@ export type Database = {
           },
         ]
       }
-    invoices: {
+      invoices: {
         Row: {
           cgst: number | null
           created_at: string
