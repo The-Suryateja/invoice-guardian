@@ -58,6 +58,7 @@ export type Database = {
       }
       invoices: {
         Row: {
+          cgst: number | null
           created_at: string
           currency: string
           extraction_confidence: number | null
@@ -66,9 +67,11 @@ export type Database = {
           file_path: string
           file_size_bytes: number | null
           id: string
+          igst: number | null
           invoice_date: string | null
           invoice_number: string | null
           raw_extraction: Json | null
+          sgst: number | null
           status: Database["public"]["Enums"]["invoice_status"]
           subtotal: number | null
           total_amount: number | null
@@ -79,6 +82,7 @@ export type Database = {
           vendor_name: string | null
         }
         Insert: {
+          cgst?: number | null
           created_at?: string
           currency?: string
           extraction_confidence?: number | null
@@ -87,9 +91,11 @@ export type Database = {
           file_path: string
           file_size_bytes?: number | null
           id?: string
+          igst?: number | null
           invoice_date?: string | null
           invoice_number?: string | null
           raw_extraction?: Json | null
+          sgst?: number | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number | null
           total_amount?: number | null
@@ -100,6 +106,7 @@ export type Database = {
           vendor_name?: string | null
         }
         Update: {
+          cgst?: number | null
           created_at?: string
           currency?: string
           extraction_confidence?: number | null
@@ -108,9 +115,11 @@ export type Database = {
           file_path?: string
           file_size_bytes?: number | null
           id?: string
+          igst?: number | null
           invoice_date?: string | null
           invoice_number?: string | null
           raw_extraction?: Json | null
+          sgst?: number | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number | null
           total_amount?: number | null
