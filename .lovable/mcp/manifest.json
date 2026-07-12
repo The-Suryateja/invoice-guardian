@@ -19,7 +19,7 @@
       {
         "name": "list_invoices",
         "title": "List invoices",
-        "description": "List the signed-in user's invoices with vendor, amount, status, and flag info. Supports optional status filter and text search over vendor/invoice number.",
+        "description": "List the signed-in user's invoices with vendor, amount, status, and flag info. Supports optional status filter (uploaded, extracting, pending_review, saved, flagged, archived, clean, duplicate) and text search over vendor/invoice number.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -36,9 +36,11 @@
                 "uploaded",
                 "extracting",
                 "pending_review",
-                "approved",
-                "rejected",
-                "flagged"
+                "saved",
+                "flagged",
+                "archived",
+                "clean",
+                "duplicate"
               ]
             },
             "search": {
