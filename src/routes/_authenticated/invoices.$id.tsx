@@ -143,7 +143,10 @@ function InvoiceDetail() {
             <KV k="GSTIN" v={inv.vendor_gstin} />
           </Section>
           <Section title="Amounts">
-            <KV k="Subtotal" v={inv.subtotal != null ? formatINR(Number(inv.subtotal), inv.currency) : null} />
+           <KV k="Subtotal" v={inv.subtotal != null ? formatINR(Number(inv.subtotal), inv.currency) : null} />
+            {inv.cgst != null && <KV k="CGST" v={formatINR(Number(inv.cgst), inv.currency)} />}
+            {inv.sgst != null && <KV k="SGST" v={formatINR(Number(inv.sgst), inv.currency)} />}
+            {inv.igst != null && <KV k="IGST" v={formatINR(Number(inv.igst), inv.currency)} />}
             <KV k="Total tax" v={inv.total_tax != null ? formatINR(Number(inv.total_tax), inv.currency) : null} />
             <KV k="Total" v={inv.total_amount != null ? formatINR(Number(inv.total_amount), inv.currency) : null} />
             <KV k="Currency" v={inv.currency} />
