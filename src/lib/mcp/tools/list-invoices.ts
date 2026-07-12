@@ -13,10 +13,10 @@ export default defineTool({
   name: "list_invoices",
   title: "List invoices",
   description:
-    "List the signed-in user's invoices with vendor, amount, status, and flag info. Supports optional status filter and text search over vendor/invoice number.",
+    "List the signed-in user's invoices with vendor, amount, status, and flag info. Supports optional status filter (uploaded, extracting, pending_review, saved, flagged, archived, clean, duplicate) and text search over vendor/invoice number.",
   inputSchema: {
     status: z
-      .enum(["uploaded", "extracting", "pending_review", "approved", "rejected", "flagged"])
+      .enum(["uploaded", "extracting", "pending_review", "saved", "flagged", "archived", "clean", "duplicate"])
       .optional()
       .describe("Filter by invoice status."),
     search: z.string().trim().optional().describe("Case-insensitive match on vendor name or invoice number."),

@@ -6,6 +6,12 @@ export type DetectResult = {
   flags: { flag_type: string; reason: string; related_invoice_id: string | null }[];
 };
 
+// Escape SQL LIKE/ILIKE wildcards so vendor names containing literal
+// %, _, or \ don't accidentally match unrelated invoices.
+function escapeLikePattern(input: string): string {
+  return input.replace(/([\\%_])/g, "\\$1");
+}
+
 export const runDetection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { invoiceId: string }) => input)
@@ -42,7 +48,7 @@ export const runDetection = createServerFn({ method: "POST" })
       if (inv.vendor_gstin) {
         query = query.eq("vendor_gstin", inv.vendor_gstin);
       } else if (inv.vendor_name) {
-        query = query.is("vendor_gstin", null).ilike("vendor_name", inv.vendor_name.trim());
+        query = query.is("vendor_gstin", null).ilike("vendor_name", escapeLikePattern(inv.vendor_name.trim()));
       } else {
         query = query.eq("id", "00000000-0000-0000-0000-000000000000"); // no-op
       }
@@ -75,7 +81,7 @@ export const runDetection = createServerFn({ method: "POST" })
       if (inv.vendor_gstin) {
         query = query.eq("vendor_gstin", inv.vendor_gstin);
       } else {
-        query = query.is("vendor_gstin", null).ilike("vendor_name", inv.vendor_name!.trim());
+        query = query.is("vendor_gstin", null).ilike("vendor_name", escapeLikePattern(inv.vendor_name!.trim()));
       }
       const { data: near } = await query.limit(1);
       if (near && near.length > 0) {
