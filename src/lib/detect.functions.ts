@@ -6,6 +6,12 @@ export type DetectResult = {
   flags: { flag_type: string; reason: string; related_invoice_id: string | null }[];
 };
 
+// Escape SQL LIKE/ILIKE wildcards so vendor names containing literal
+// %, _, or \ don't accidentally match unrelated invoices.
+function escapeLikePattern(input: string): string {
+  return input.replace(/([\\%_])/g, "\\$1");
+}
+
 export const runDetection = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { invoiceId: string }) => input)
