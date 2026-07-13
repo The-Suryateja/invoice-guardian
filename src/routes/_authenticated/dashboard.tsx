@@ -93,8 +93,8 @@ function Dashboard() {
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat icon={<FileText className="size-4" />} label="Total invoices" value={isLoading ? "…" : String(stats.count)} />
         <Stat icon={<AlertTriangle className="size-4 text-yellow-600" />} label="Flagged" value={isLoading ? "…" : String(stats.flagged)} />
-        <Stat icon={<IndianRupee className="size-4" />} label="Amount processed" value={isLoading ? "…" : formatINR(stats.total)} />
-        <Stat icon={<ShieldAlert className="size-4 text-red-600" />} label="Amount at risk" value={isLoading ? "…" : formatINR(stats.risk)} />
+        <Stat icon={<IndianRupee className="size-4" />} label="Amount processed" value={isLoading ? "…" : formatINR(stats.inrTotal)} note={stats.otherTotalCount > 0 ? `+ ${stats.otherTotalCount} invoice${stats.otherTotalCount === 1 ? "" : "s"} in other currencies` : undefined} />
+        <Stat icon={<ShieldAlert className="size-4 text-red-600" />} label="Amount at risk" value={isLoading ? "…" : formatINR(stats.inrRisk)} note={stats.otherRiskCount > 0 ? `+ ${stats.otherRiskCount} invoice${stats.otherRiskCount === 1 ? "" : "s"} in other currencies` : undefined} />
       </div>
 
       <div className="mt-8 rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
