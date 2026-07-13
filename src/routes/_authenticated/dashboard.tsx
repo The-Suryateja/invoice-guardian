@@ -169,7 +169,7 @@ function Dashboard() {
   );
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Stat({ icon, label, value, note }: { icon: React.ReactNode; label: string; value: string; note?: string }) {
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
       <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
@@ -177,6 +177,7 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
         {label}
       </div>
       <div className="mt-3 font-mono text-2xl font-semibold tabular-nums">{value}</div>
+      {note && <div className="mt-1 text-xs text-muted-foreground">{note}</div>}
     </div>
   );
 }
