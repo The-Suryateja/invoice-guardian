@@ -19,7 +19,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("id, status, total_amount, vendor_name, created_at")
+        .select("id, status, total_amount, currency, vendor_name, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -42,9 +42,15 @@ function Dashboard() {
   const stats = useMemo(() => {
     const list = invoices ?? [];
     const flagged = list.filter((i) => i.status === "flagged" || i.status === "duplicate");
-    const total = list.reduce((s, i) => s + Number(i.total_amount ?? 0), 0);
-    const risk = flagged.reduce((s, i) => s + Number(i.total_amount ?? 0), 0);
-    return { count: list.length, flagged: flagged.length, total, risk };
+    const inrTotal = list
+      .filter((i) => (i.currency ?? "INR") === "INR")
+      .reduce((s, i) => s + Number(i.total_amount ?? 0), 0);
+    const inrRisk = flagged
+      .filter((i) => (i.currency ?? "INR") === "INR")
+      .reduce((s, i) => s + Number(i.total_amount ?? 0), 0);
+    const otherTotalCount = list.filter((i) => (i.currency ?? "INR") !== "INR").length;
+    const otherRiskCount = flagged.filter((i) => (i.currency ?? "INR") !== "INR").length;
+    return { count: list.length, flagged: flagged.length, inrTotal, inrRisk, otherTotalCount, otherRiskCount };
   }, [invoices]);
 
   const chart = useMemo(() => {
@@ -87,8 +93,8 @@ function Dashboard() {
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat icon={<FileText className="size-4" />} label="Total invoices" value={isLoading ? "…" : String(stats.count)} />
         <Stat icon={<AlertTriangle className="size-4 text-yellow-600" />} label="Flagged" value={isLoading ? "…" : String(stats.flagged)} />
-        <Stat icon={<IndianRupee className="size-4" />} label="Amount processed" value={isLoading ? "…" : formatINR(stats.total)} />
-        <Stat icon={<ShieldAlert className="size-4 text-red-600" />} label="Amount at risk" value={isLoading ? "…" : formatINR(stats.risk)} />
+        <Stat icon={<IndianRupee className="size-4" />} label="Amount processed" value={isLoading ? "…" : formatINR(stats.inrTotal)} note={stats.otherTotalCount > 0 ? `+ ${stats.otherTotalCount} invoice${stats.otherTotalCount === 1 ? "" : "s"} in other currencies` : undefined} />
+        <Stat icon={<ShieldAlert className="size-4 text-red-600" />} label="Amount at risk" value={isLoading ? "…" : formatINR(stats.inrRisk)} note={stats.otherRiskCount > 0 ? `+ ${stats.otherRiskCount} invoice${stats.otherRiskCount === 1 ? "" : "s"} in other currencies` : undefined} />
       </div>
 
       <div className="mt-8 rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
@@ -163,7 +169,7 @@ function Dashboard() {
   );
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Stat({ icon, label, value, note }: { icon: React.ReactNode; label: string; value: string; note?: string }) {
   return (
     <div className="rounded-xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
       <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
@@ -171,6 +177,7 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
         {label}
       </div>
       <div className="mt-3 font-mono text-2xl font-semibold tabular-nums">{value}</div>
+      {note && <div className="mt-1 text-xs text-muted-foreground">{note}</div>}
     </div>
   );
 }

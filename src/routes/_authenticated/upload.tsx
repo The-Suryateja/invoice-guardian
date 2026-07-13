@@ -71,7 +71,7 @@ function UploadPage() {
           }
           if (!firstInvoiceId) firstInvoiceId = inserted.id;
         }
-        if (firstInvoiceId) {
+        if (list.length === 1 && firstInvoiceId) {
           navigate({ to: "/review/$id", params: { id: firstInvoiceId } });
         } else {
           navigate({ to: "/invoices" });

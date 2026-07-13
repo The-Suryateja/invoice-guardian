@@ -163,11 +163,11 @@ function InvoicesPage() {
                   <tr
                     key={row.id}
                     className="cursor-pointer border-b border-border transition-colors last:border-0 hover:bg-muted/30"
-                    onClick={() => (window.location.href = `/invoices/${row.id}`)}
+                    onClick={() => (window.location.href = row.status === "extracting" ? `/review/${row.id}` : `/invoices/${row.id}`)}
                   >
                     <td className="px-4 py-3">
                       <Link
-                        to="/invoices/$id"
+                        to={row.status === "extracting" ? "/review/$id" : "/invoices/$id"}
                         params={{ id: row.id }}
                         onClick={(e) => e.stopPropagation()}
                         className="font-medium hover:underline"
