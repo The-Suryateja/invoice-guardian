@@ -42,9 +42,15 @@ function Dashboard() {
   const stats = useMemo(() => {
     const list = invoices ?? [];
     const flagged = list.filter((i) => i.status === "flagged" || i.status === "duplicate");
-    const total = list.reduce((s, i) => s + Number(i.total_amount ?? 0), 0);
-    const risk = flagged.reduce((s, i) => s + Number(i.total_amount ?? 0), 0);
-    return { count: list.length, flagged: flagged.length, total, risk };
+    const inrTotal = list
+      .filter((i) => (i.currency ?? "INR") === "INR")
+      .reduce((s, i) => s + Number(i.total_amount ?? 0), 0);
+    const inrRisk = flagged
+      .filter((i) => (i.currency ?? "INR") === "INR")
+      .reduce((s, i) => s + Number(i.total_amount ?? 0), 0);
+    const otherTotalCount = list.filter((i) => (i.currency ?? "INR") !== "INR").length;
+    const otherRiskCount = flagged.filter((i) => (i.currency ?? "INR") !== "INR").length;
+    return { count: list.length, flagged: flagged.length, inrTotal, inrRisk, otherTotalCount, otherRiskCount };
   }, [invoices]);
 
   const chart = useMemo(() => {
