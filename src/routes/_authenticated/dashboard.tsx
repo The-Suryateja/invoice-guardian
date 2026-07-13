@@ -19,7 +19,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("id, status, total_amount, vendor_name, created_at")
+        .select("id, status, total_amount, currency, vendor_name, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
