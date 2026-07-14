@@ -6,16 +6,16 @@ import hero from "@/assets/hero.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "InvoiceGuard — AI invoice automation with fraud detection" },
+      { title: "InvoiceGuardian — AI invoice automation with fraud detection" },
       {
         name: "description",
         content:
           "Upload invoices, let AI extract every field, and catch duplicates, math errors, and vendor anomalies before they're paid.",
       },
-      { property: "og:title", content: "InvoiceGuard" },
+      { property: "og:title", content: "InvoiceGuardian — AI invoice automation with fraud detection" },
       {
         property: "og:description",
-        content: "AI invoice automation with built-in duplicate and fraud detection.",
+        content: "Upload invoices, let AI extract every field, and catch duplicates, math errors, and vendor anomalies before they're paid.",
       },
     ],
   }),
