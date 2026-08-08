@@ -32,12 +32,12 @@ function Landing() {
             InvoiceGuard
           </Link>
           <nav className="flex items-center gap-2">
-            <Link to="/auth">
+            <Link to="/auth" search={{}}>
               <Button variant="ghost" size="sm">
                 Sign in
               </Button>
             </Link>
-            <Link to="/auth">
+            <Link to="/auth" search={{}}>
               <Button size="sm">
                 Get started
                 <ArrowRight className="size-4" />
@@ -61,7 +61,7 @@ function Landing() {
             vendor-outlier checks before anything hits your books.
           </p>
           <div className="mt-8 flex gap-3">
-            <Link to="/auth">
+            <Link to="/auth" search={{}}>
               <Button size="lg">
                 Start free
                 <ArrowRight className="size-4" />

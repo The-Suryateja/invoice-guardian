@@ -15,9 +15,10 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Sign in or create your InvoiceGuard account." },
     ],
   }),
-  validateSearch: (s: Record<string, unknown>) => ({
-    next: typeof s.next === "string" && s.next.startsWith("/") && !s.next.startsWith("//") ? s.next : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>) => {
+    const next = typeof s.next === "string" && s.next.startsWith("/") && !s.next.startsWith("//") ? s.next : undefined;
+    return next ? { next } : {};
+  },
   component: AuthPage,
 });
 
