@@ -106,6 +106,7 @@ function ResetPasswordPage() {
           {hasSession === false && (
             <Link
               to="/auth"
+              search={{}}
               className="mt-6 block w-full text-center text-sm font-medium text-primary hover:underline"
             >
               Back to sign in
