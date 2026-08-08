@@ -10,171 +10,11 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.15"
   }
   public: {
     Tables: {
-      flags: {
-        Row: {
-          created_at: string
-          flag_type: Database["public"]["Enums"]["flag_type"]
-          id: string
-          invoice_id: string
-          reason: string
-          related_invoice_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          flag_type: Database["public"]["Enums"]["flag_type"]
-          id?: string
-          invoice_id: string
-          reason: string
-          related_invoice_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          flag_type?: Database["public"]["Enums"]["flag_type"]
-          id?: string
-          invoice_id?: string
-          reason?: string
-          related_invoice_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "flags_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "invoices"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "flags_related_invoice_id_fkey"
-            columns: ["related_invoice_id"]
-            isOneToOne: false
-            referencedRelation: "invoices"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      invoices: {
-        Row: {
-          cgst: number | null
-          created_at: string
-          currency: string
-          extraction_confidence: number | null
-          file_mime: string | null
-          file_name: string
-          file_path: string
-          file_size_bytes: number | null
-          id: string
-          igst: number | null
-          invoice_date: string | null
-          invoice_number: string | null
-          raw_extraction: Json | null
-          sgst: number | null
-          status: Database["public"]["Enums"]["invoice_status"]
-          subtotal: number | null
-          total_amount: number | null
-          total_tax: number | null
-          updated_at: string
-          user_id: string
-          vendor_gstin: string | null
-          vendor_name: string | null
-        }
-        Insert: {
-          cgst?: number | null
-          created_at?: string
-          currency?: string
-          extraction_confidence?: number | null
-          file_mime?: string | null
-          file_name: string
-          file_path: string
-          file_size_bytes?: number | null
-          id?: string
-          igst?: number | null
-          invoice_date?: string | null
-          invoice_number?: string | null
-          raw_extraction?: Json | null
-          sgst?: number | null
-          status?: Database["public"]["Enums"]["invoice_status"]
-          subtotal?: number | null
-          total_amount?: number | null
-          total_tax?: number | null
-          updated_at?: string
-          user_id: string
-          vendor_gstin?: string | null
-          vendor_name?: string | null
-        }
-        Update: {
-          cgst?: number | null
-          created_at?: string
-          currency?: string
-          extraction_confidence?: number | null
-          file_mime?: string | null
-          file_name?: string
-          file_path?: string
-          file_size_bytes?: number | null
-          id?: string
-          igst?: number | null
-          invoice_date?: string | null
-          invoice_number?: string | null
-          raw_extraction?: Json | null
-          sgst?: number | null
-          status?: Database["public"]["Enums"]["invoice_status"]
-          subtotal?: number | null
-          total_amount?: number | null
-          total_tax?: number | null
-          updated_at?: string
-          user_id?: string
-          vendor_gstin?: string | null
-          vendor_name?: string | null
-        }
-        Relationships: []
-      }
-      line_items: {
-        Row: {
-          amount: number | null
-          created_at: string
-          description: string | null
-          id: string
-          invoice_id: string
-          position: number
-          quantity: number | null
-          tax_rate: number | null
-          unit_price: number | null
-        }
-        Insert: {
-          amount?: number | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          invoice_id: string
-          position?: number
-          quantity?: number | null
-          tax_rate?: number | null
-          unit_price?: number | null
-        }
-        Update: {
-          amount?: number | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          invoice_id?: string
-          position?: number
-          quantity?: number | null
-          tax_rate?: number | null
-          unit_price?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "line_items_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "invoices"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
@@ -183,23 +23,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      flag_type:
-        | "exact_duplicate"
-        | "near_duplicate"
-        | "math_mismatch"
-        | "vendor_outlier"
-        | "possible_duplicate"
-        | "calculation_anomaly"
-        | "amount_anomaly"
-      invoice_status:
-        | "uploaded"
-        | "extracting"
-        | "pending_review"
-        | "saved"
-        | "flagged"
-        | "archived"
-        | "clean"
-        | "duplicate"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -326,26 +150,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      flag_type: [
-        "exact_duplicate",
-        "near_duplicate",
-        "math_mismatch",
-        "vendor_outlier",
-        "possible_duplicate",
-        "calculation_anomaly",
-        "amount_anomaly",
-      ],
-      invoice_status: [
-        "uploaded",
-        "extracting",
-        "pending_review",
-        "saved",
-        "flagged",
-        "archived",
-        "clean",
-        "duplicate",
-      ],
-    },
+    Enums: {},
   },
 } as const
