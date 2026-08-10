@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 
@@ -40,8 +40,8 @@ export const extractInvoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { invoiceId: string }) => input)
   .handler(async ({ data, context }) => {
-    const apiKey = process.env['OPENAI_API_KEY'];
-    if (!apiKey) throw new Error("Missing OPENAI_API_KEY");
+    const apiKey = process.env['GEMINI_API_KEY'];
+    if (!apiKey) throw new Error("Missing GEMINI_API_KEY");
 
     const { supabase, userId } = context;
 
@@ -67,34 +67,29 @@ export const extractInvoice = createServerFn({ method: "POST" })
     }
     const b64 = btoa(binary);
     const mime = invoice.file_mime || "application/octet-stream";
-    const dataUrl = `data:${mime};base64,${b64}`;
 
-    const isImage = mime.startsWith("image/");
-    const contentPart = isImage
-      ? { type: "image_url" as const, image_url: { url: dataUrl } }
-      : { type: "file" as const, file: { filename: invoice.file_name, file_data: dataUrl } };
+    const ai = new GoogleGenAI({ apiKey });
 
-    const openai = new OpenAI({ apiKey });
-
-    let completion;
+    let raw = "";
     try {
-      completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
           {
             role: "user",
-            content: [
-              { type: "text", text: EXTRACTION_PROMPT },
-              contentPart,
-            ] as never,
+            parts: [
+              { text: EXTRACTION_PROMPT },
+              { inlineData: { mimeType: mime, data: b64 } },
+            ],
           },
         ],
-        response_format: { type: "json_object" },
+        config: { responseMimeType: "application/json" },
       });
+      raw = response.text ?? "";
     } catch (err) {
       const status = (err as { status?: number })?.status;
       if (status === 429) throw new Error("AI rate limit reached. Please try again in a moment.");
-      if (status === 401) throw new Error("Invalid OpenAI API key.");
+      if (status === 401 || status === 403) throw new Error("Invalid Gemini API key.");
       throw new Error(
         `AI extraction failed${status ? ` (${status})` : ""}: ${
           err instanceof Error ? err.message.slice(0, 300) : "unknown error"
@@ -102,7 +97,6 @@ export const extractInvoice = createServerFn({ method: "POST" })
       );
     }
 
-    const raw = completion.choices?.[0]?.message?.content ?? "";
     let parsed: any;
     try {
       parsed = JSON.parse(stripJsonFences(raw));
