@@ -40,8 +40,9 @@ export const extractInvoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { invoiceId: string }) => input)
   .handler(async ({ data, context }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
+    const apiKey = process.env['OPENAI_API_KEY'];
+    if (!apiKey) throw new Error("Missing OPENAI_API_KEY");
+
     const { supabase, userId } = context;
 
     const { data: invoice, error: fetchErr } = await supabase
