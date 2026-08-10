@@ -71,49 +71,45 @@ export const extractInvoice = createServerFn({ method: "POST" })
 
     const isImage = mime.startsWith("image/");
     const contentPart = isImage
-      ? { type: "image_url", image_url: { url: dataUrl } }
-      : { type: "file", file: { filename: invoice.file_name, file_data: dataUrl } };
+      ? { type: "image_url" as const, image_url: { url: dataUrl } }
+      : { type: "file" as const, file: { filename: invoice.file_name, file_data: dataUrl } };
 
-    const body = {
-      model: "google/gemini-3-flash-preview",
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: EXTRACTION_PROMPT },
-            contentPart,
-          ],
-        },
-      ],
-      response_format: { type: "json_object" },
-    };
+    const openai = new OpenAI({ apiKey });
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Lovable-API-Key": apiKey,
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!resp.ok) {
-      const errText = await resp.text();
-      if (resp.status === 429) throw new Error("AI rate limit reached. Please try again in a moment.");
-      if (resp.status === 402) throw new Error("AI credits exhausted. Please add credits to continue.");
-      throw new Error(`AI extraction failed (${resp.status}): ${errText.slice(0, 300)}`);
+    let completion;
+    try {
+      completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: EXTRACTION_PROMPT },
+              contentPart,
+            ] as never,
+          },
+        ],
+        response_format: { type: "json_object" },
+      });
+    } catch (err) {
+      const status = (err as { status?: number })?.status;
+      if (status === 429) throw new Error("AI rate limit reached. Please try again in a moment.");
+      if (status === 401) throw new Error("Invalid OpenAI API key.");
+      throw new Error(
+        `AI extraction failed${status ? ` (${status})` : ""}: ${
+          err instanceof Error ? err.message.slice(0, 300) : "unknown error"
+        }`,
+      );
     }
 
-    const json = (await resp.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const raw = json.choices?.[0]?.message?.content ?? "";
+    const raw = completion.choices?.[0]?.message?.content ?? "";
     let parsed: any;
     try {
       parsed = JSON.parse(stripJsonFences(raw));
     } catch {
       throw new Error("AI returned invalid JSON");
     }
+
 
     return { extraction: parsed as any };
   });
