@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
+import OpenAI from "openai";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 
 const EXTRACTION_PROMPT = `You are an invoice data extraction system. Extract structured data from the invoice provided.
 
