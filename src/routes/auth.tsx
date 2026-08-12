@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-type View = "signin" | "signup" | "forgot" | "otp-email";
+type View = "signin" | "signup" | "forgot" | "otp-email" | "otp-verify";
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [otp, setOtp] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -93,16 +94,29 @@ function AuthPage() {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: {
-          shouldCreateUser: true,
-          emailRedirectTo: next ? `${window.location.origin}${next}` : `${window.location.origin}/dashboard`,
-        },
+        options: { shouldCreateUser: true },
       });
       if (error) throw error;
-      toast.success("Sign-in link sent to your email.");
-      setMagicLinkSent(true);
+      toast.success("Verification code sent to your email.");
+      setOtp("");
+      setView("otp-verify");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onOtpVerify(e: React.FormEvent) {
+    e.preventDefault();
+    if (otp.length !== 6) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: "email" });
+      if (error) throw error;
+      goNext();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Invalid verification code");
     } finally {
       setBusy(false);
     }
@@ -141,9 +155,17 @@ function AuthPage() {
           )}
           {view === "otp-email" && (
             <>
-              <h1 className="text-lg font-semibold">Sign in with a magic link</h1>
+              <h1 className="text-lg font-semibold">Sign in with a verification code</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                We'll email you a sign-in link. No password required.
+                We'll email you a 6-digit code. No password required.
+              </p>
+            </>
+          )}
+          {view === "otp-verify" && (
+            <>
+              <h1 className="text-lg font-semibold">Enter your code</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                We sent a 6-digit code to <span className="text-foreground">{email}</span>.
               </p>
             </>
           )}
@@ -222,35 +244,53 @@ function AuthPage() {
             </form>
           )}
 
-          {/* Magic link */}
+          {/* OTP: request code */}
           {view === "otp-email" && (
-            <div className="mt-6 space-y-4">
-              {magicLinkSent ? (
-                <div className="rounded-lg border border-border bg-muted/50 p-4 text-center">
-                  <p className="text-sm font-medium text-foreground">Check your email</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Click the sign-in link we sent to <span className="text-foreground">{email}</span> to continue.
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={onOtpSend} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="email-otp">Email</Label>
-                    <Input
-                      id="email-otp"
-                      type="email"
-                      required
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={busy}>
-                    {busy ? "Sending…" : "Send sign-in link"}
-                  </Button>
-                </form>
-              )}
-            </div>
+            <form onSubmit={onOtpSend} className="mt-6 space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="email-otp">Email</Label>
+                <Input
+                  id="email-otp"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={busy}>
+                {busy ? "Sending…" : "Send verification code"}
+              </Button>
+            </form>
+          )}
+
+          {/* OTP: verify code */}
+          {view === "otp-verify" && (
+            <form onSubmit={onOtpVerify} className="mt-6 space-y-4">
+              <div className="flex justify-center">
+                <InputOTP maxLength={6} value={otp} onChange={setOtp} inputMode="numeric">
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+              <Button type="submit" className="w-full" disabled={busy || otp.length !== 6}>
+                {busy ? "Verifying…" : "Verify & sign in"}
+              </Button>
+              <button
+                type="button"
+                onClick={onOtpSend}
+                disabled={busy}
+                className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
+              >
+                Resend code
+              </button>
+            </form>
           )}
 
           {/* Footer switches */}
@@ -269,16 +309,16 @@ function AuthPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setMagicLinkSent(false);
+                    setOtp("");
                     setView("otp-email");
                   }}
                   className="w-full text-center text-sm font-medium text-primary hover:underline"
                 >
-                  Sign in with a magic link instead
+                  Sign in using verification code instead
                 </button>
               </>
             )}
-            {(view === "forgot" || view === "otp-email") && (
+            {(view === "forgot" || view === "otp-email" || view === "otp-verify") && (
               <button
                 type="button"
                 onClick={() => setView("signin")}
