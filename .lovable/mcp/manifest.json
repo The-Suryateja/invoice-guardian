@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://njbxigewovflkoteijmb.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "invoiceguard-mcp",
+      "version": "0.1.0",
+      "title": "InvoiceGuard"
+    },
+    "tools": [
+      {
+        "name": "list_invoices",
+        "title": "List invoices",
+        "description": "List the signed-in user's invoices with vendor, amount, status, and flag info. Supports optional status filter (uploaded, extracting, pending_review, saved, flagged, archived, clean, duplicate) and text search over vendor/invoice number.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "status": {
+              "description": "Filter by invoice status.",
+              "type": "string",
+              "enum": [
+                "uploaded",
+                "extracting",
+                "pending_review",
+                "saved",
+                "flagged",
+                "archived",
+                "clean",
+                "duplicate"
+              ]
+            },
+            "search": {
+              "description": "Case-insensitive match on vendor name or invoice number.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Max rows to return (default 25).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_invoice",
+        "title": "Get invoice",
+        "description": "Fetch a single invoice by ID including its line items and any flags.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Invoice ID (UUID)."
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

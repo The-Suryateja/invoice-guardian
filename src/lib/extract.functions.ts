@@ -1,7 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { GoogleGenAI } from "@google/genai";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
 
 const EXTRACTION_PROMPT = `You are an invoice data extraction system. Extract structured data from the invoice provided.
 
@@ -40,9 +38,8 @@ export const extractInvoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { invoiceId: string }) => input)
   .handler(async ({ data, context }) => {
-    const apiKey = process.env['GEMINI_API_KEY'];
-    if (!apiKey) throw new Error("Missing GEMINI_API_KEY");
-
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
     const { supabase, userId } = context;
 
     const { data: invoice, error: fetchErr } = await supabase
@@ -67,43 +64,53 @@ export const extractInvoice = createServerFn({ method: "POST" })
     }
     const b64 = btoa(binary);
     const mime = invoice.file_mime || "application/octet-stream";
+    const dataUrl = `data:${mime};base64,${b64}`;
 
-    const ai = new GoogleGenAI({ apiKey });
+    const isImage = mime.startsWith("image/");
+    const contentPart = isImage
+      ? { type: "image_url", image_url: { url: dataUrl } }
+      : { type: "file", file: { filename: invoice.file_name, file_data: dataUrl } };
 
-    let raw = "";
-    try {
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: [
-          {
-            role: "user",
-            parts: [
-              { text: EXTRACTION_PROMPT },
-              { inlineData: { mimeType: mime, data: b64 } },
-            ],
-          },
-        ],
-        config: { responseMimeType: "application/json" },
-      });
-      raw = response.text ?? "";
-    } catch (err) {
-      const status = (err as { status?: number })?.status;
-      if (status === 429) throw new Error("AI rate limit reached. Please try again in a moment.");
-      if (status === 401 || status === 403) throw new Error("Invalid Gemini API key.");
-      throw new Error(
-        `AI extraction failed${status ? ` (${status})` : ""}: ${
-          err instanceof Error ? err.message.slice(0, 300) : "unknown error"
-        }`,
-      );
+    const body = {
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: EXTRACTION_PROMPT },
+            contentPart,
+          ],
+        },
+      ],
+      response_format: { type: "json_object" },
+    };
+
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Lovable-API-Key": apiKey,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      if (resp.status === 429) throw new Error("AI rate limit reached. Please try again in a moment.");
+      if (resp.status === 402) throw new Error("AI credits exhausted. Please add credits to continue.");
+      throw new Error(`AI extraction failed (${resp.status}): ${errText.slice(0, 300)}`);
     }
 
+    const json = (await resp.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    const raw = json.choices?.[0]?.message?.content ?? "";
     let parsed: any;
     try {
       parsed = JSON.parse(stripJsonFences(raw));
     } catch {
       throw new Error("AI returned invalid JSON");
     }
-
 
     return { extraction: parsed as any };
   });
